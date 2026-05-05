@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://rohit-acadmey.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://rohit-academy-server-1.onrender.com/api",
   timeout: 30000,
   headers: { "Content-Type": "application/json" },
 });
