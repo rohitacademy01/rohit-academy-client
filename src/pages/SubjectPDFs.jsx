@@ -34,7 +34,7 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 };
 
-function PDFCard({ pdf, onPreview, previewLoading }) {
+function PDFCard({ pdf, onPreview, onDownload, previewLoading }) {
   const cat = CATEGORY_COLORS[pdf.category] || CATEGORY_COLORS.notes;
   const label = TABS.find((t) => t.key === pdf.category)?.label || pdf.category;
   return (
@@ -62,15 +62,12 @@ function PDFCard({ pdf, onPreview, previewLoading }) {
         >
           {previewLoading ? <Loader2 size={13} className="animate-spin" /> : <Eye size={13} />} Preview
         </button>
-        <a
-          href={pdf.fileUrl}
-          download
-          target="_blank"
-          rel="noreferrer"
+        <button
+          onClick={() => onDownload(pdf)}
           className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-medium transition"
         >
           <Download size={13} /> Download
-        </a>
+        </button>
       </div>
     </div>
   );
@@ -122,9 +119,18 @@ function SubjectPDFs() {
       const res = await API.post("/pdf/token/" + pdf._id);
       window.open(res.data.url, "_blank");
     } catch (e) {
-      alert("PDF load failed. Please try Download instead.");
+      alert("Preview failed. Please try again.");
     } finally {
       setPreviewLoading(false);
+    }
+  };
+
+  const handleDownload = async (pdf) => {
+    try {
+      const res = await API.post("/pdf/token/" + pdf._id);
+      window.open(res.data.url + "&download=true", "_blank");
+    } catch (e) {
+      alert("Download failed. Please try again.");
     }
   };
 
@@ -249,7 +255,7 @@ function SubjectPDFs() {
             <p className="text-sm text-gray-500">{pagination.total || pdfs.length} PDF{(pagination.total || pdfs.length) !== 1 ? "s" : ""} found</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {pdfs.map((pdf) => (
-                <PDFCard key={pdf._id} pdf={pdf} onPreview={handlePreview} previewLoading={previewLoading} />
+                <PDFCard key={pdf._id} pdf={pdf} onPreview={handlePreview} onDownload={handleDownload} previewLoading={previewLoading} />
               ))}
             </div>
             {pagination.pages > 1 && (
