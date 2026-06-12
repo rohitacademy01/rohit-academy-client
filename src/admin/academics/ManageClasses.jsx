@@ -13,6 +13,7 @@ function ManageClasses() {
 
   const [classes, setClasses] = useState([]);
   const [newClass, setNewClass] = useState("");
+  const [classType, setClassType] = useState("school"); // Added class type selector
   const [requiresStream, setRequiresStream] = useState(false);
 
   const [editingId, setEditingId] = useState(null);
@@ -75,7 +76,8 @@ function ManageClasses() {
 
     const num = parseInt(value);
 
-    if (!isNaN(num) && num >= 11) {
+    // Show stream warning only for numeric school classes >= 11
+    if (classType === "school" && !isNaN(num) && num >= 11) {
       setRequiresStream(true);
     } else {
       setRequiresStream(false);
@@ -111,11 +113,13 @@ function ManageClasses() {
 
       await API.post("/classes", {
         name,
-        requiresStream
+        type: classType,  // Send the selected class type
+        requiresStream: classType === "college" || classType === "professional" ? true : requiresStream
       });
 
       setNewClass("");
       setRequiresStream(false);
+      setClassType("school"); // Reset type to school
 
       fetchClasses();
 
@@ -233,11 +237,31 @@ function ManageClasses() {
 
       <div className="flex flex-col gap-3 mb-8">
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+
+          <select
+            value={classType}
+            onChange={(e) => {
+              setClassType(e.target.value);
+              setRequiresStream(false);
+              setError("");
+            }}
+            className="border p-3 rounded-lg bg-white"
+          >
+            <option value="school">School Class (1-12)</option>
+            <option value="college">College (BA, BSc, BCom)</option>
+            <option value="professional">Professional</option>
+          </select>
 
           <input
             type="text"
-            placeholder="Enter class (e.g. 9, 10, 11, BA, BSc, BCom)"
+            placeholder={
+              classType === "school"
+                ? "Enter class (e.g. 9, 10, 11, 12)"
+                : classType === "college"
+                ? "Enter degree (e.g. BA, BSc, BCom)"
+                : "Enter course name"
+            }
             value={newClass}
             onChange={(e) =>
               handleClassInput(e.target.value)
@@ -263,9 +287,15 @@ function ManageClasses() {
 
         </div>
 
-        {requiresStream && (
+        {classType === "school" && requiresStream && (
           <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded">
             ⚠️ This class will require stream selection (11th+ rule)
+          </div>
+        )}
+
+        {(classType === "college" || classType === "professional") && (
+          <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+            ✓ This class type automatically requires stream/specialization selection
           </div>
         )}
 
