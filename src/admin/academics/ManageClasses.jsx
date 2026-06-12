@@ -34,7 +34,18 @@ function ManageClasses() {
       const list = res.data?.data || [];
 
       const sorted = [...list].sort(
-        (a, b) => Number(a.name) - Number(b.name)
+        (a, b) => {
+          const aNum = parseInt(a.name);
+          const bNum = parseInt(b.name);
+          // Sort numeric classes first, then alphabetically for non-numeric
+          if (!isNaN(aNum) && !isNaN(bNum)) {
+            return aNum - bNum;
+          }
+          if (isNaN(aNum) && isNaN(bNum)) {
+            return a.name.localeCompare(b.name);
+          }
+          return isNaN(aNum) ? 1 : -1;
+        }
       );
 
       setClasses(sorted);
@@ -78,9 +89,9 @@ function ManageClasses() {
 
     if (!name) return;
 
-    /* 🔥 NUMERIC VALIDATION */
-    if (!/^\d+$/.test(name)) {
-      setError("Class must be numeric (e.g. 9, 10, 11)");
+    /* 🔥 VALIDATION - Accept numeric or text classes */
+    if (!/^[a-zA-Z0-9]+$/.test(name)) {
+      setError("Class must be alphanumeric (e.g. 9, 10, BA, BSc, BCom)");
       return;
     }
 
@@ -159,9 +170,9 @@ function ManageClasses() {
 
     if (!name) return;
 
-    /* 🔥 NUMERIC VALIDATION */
-    if (!/^\d+$/.test(name)) {
-      setError("Class must be numeric");
+    /* 🔥 VALIDATION - Accept numeric or text classes */
+    if (!/^[a-zA-Z0-9]+$/.test(name)) {
+      setError("Class must be alphanumeric");
       return;
     }
 
@@ -225,8 +236,8 @@ function ManageClasses() {
         <div className="flex gap-3">
 
           <input
-            type="number"
-            placeholder="Enter class (e.g. 9, 10, 11, 12)"
+            type="text"
+            placeholder="Enter class (e.g. 9, 10, 11, BA, BSc, BCom)"
             value={newClass}
             onChange={(e) =>
               handleClassInput(e.target.value)
@@ -290,7 +301,7 @@ function ManageClasses() {
                 {editingId === cls._id ? (
 
                   <input
-                    type="number"
+                    type="text"
                     value={editingValue}
                     onChange={(e) =>
                       setEditingValue(e.target.value)
